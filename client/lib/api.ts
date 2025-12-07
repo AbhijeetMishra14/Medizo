@@ -1,3 +1,5 @@
+import { buildApiUrl } from "./config";
+
 export interface ApiListParams {
   search?: string | null;
   category?: string | null;
@@ -14,7 +16,8 @@ export async function apiGet<T>(path: string, params?: Record<string, any>, toke
       if (v !== undefined && v !== null && `${v}`.length > 0) usp.set(k, String(v));
     });
   }
-  const url = usp.toString() ? `${path}?${usp.toString()}` : path;
+  const fullUrl = buildApiUrl(path);
+  const url = usp.toString() ? `${fullUrl}?${usp.toString()}` : fullUrl;
   const res = await fetch(url, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
@@ -23,7 +26,8 @@ export async function apiGet<T>(path: string, params?: Record<string, any>, toke
 }
 
 export async function apiPost<T>(path: string, body?: any, token?: string | null): Promise<T> {
-  const res = await fetch(path, {
+  const fullUrl = buildApiUrl(path);
+  const res = await fetch(fullUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { apiGet, apiPost } from "@/lib/api";
+import { buildApiUrl } from "@/lib/config";
 import axios from "axios";
 
 // ----------------- TYPES -----------------
@@ -82,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGoogle = async (googleToken: string) => {
     if (!googleToken) throw new Error("Missing Google token.");
-    const { data } = await axios.post<{ token: string; user: AuthUser }>("/api/auth/google", { token: googleToken });
+    const { data } = await axios.post<{ token: string; user: AuthUser }>(buildApiUrl("/api/auth/google"), { token: googleToken });
     setToken(data.token);
     setUser(data.user);
     localStorage.setItem("auth_token", data.token);
@@ -91,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithFacebook = async (accessToken: string, userID: string) => {
     if (!accessToken || !userID) throw new Error("Missing Facebook credentials.");
-    const { data } = await axios.post<{ token: string; user: AuthUser }>("/api/auth/facebook", { accessToken, userID });
+    const { data } = await axios.post<{ token: string; user: AuthUser }>(buildApiUrl("/api/auth/facebook"), { accessToken, userID });
     setToken(data.token);
     setUser(data.user);
     localStorage.setItem("auth_token", data.token);

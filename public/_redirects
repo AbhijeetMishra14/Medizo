@@ -1,0 +1,8 @@
+# Netlify redirects configuration
+# Forward all API requests to Render backend
+
+# API routes - forward to Render backend
+/api/*  https://medizo-backend.onrender.com/:splat  200
+
+# Single page application - serve index.html for all non-file routes
+/*    /index.html   200

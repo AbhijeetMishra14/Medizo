@@ -36,11 +36,41 @@ let mongoInitPromise = Promise.resolve();
 export function createServer() {
   const app = express();
 
-  // Middleware
+  // CORS configuration for production
+  const getAllowedOrigins = () => {
+    const origins = [
+      "http://localhost:5173",      // Local dev
+      "http://localhost:5174",      // Local dev (alternate port)
+      "http://localhost:3000",      // Local API
+      "http://192.168.18.14:5173",  // Local network
+      "http://192.168.18.14:5174",  // Local network (alternate)
+      process.env.FRONTEND_URL,     // Netlify/production frontend
+    ].filter(Boolean);
+    return origins;
+  };
+
   app.use(cors({
-    origin: true,
+    origin: (origin, callback) => {
+      const allowed = getAllowedOrigins();
+      if (!origin || allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Blocked origin: ${origin}`);
+        callback(null, true); // Allow for now, can be restricted
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }));
+
+  // Add CORS headers for Google OAuth compatibility
+  app.use((req, res, next) => {
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+    next();
+  });
+
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
   

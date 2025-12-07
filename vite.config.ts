@@ -12,6 +12,7 @@ export default defineConfig({
       allow: [
         path.resolve(__dirname, "client"),
         path.resolve(__dirname, "shared"),
+        path.resolve(__dirname, "public"),
       ],
     },
     headers: {
