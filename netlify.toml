@@ -5,7 +5,7 @@
 
 
 [functions]
-  external_node_modules = ["express", "serverless-http"]
+  external_node_modules = ["express", "serverless-http", "cors", "mongoose", "jsonwebtoken", "dotenv", "mongodb", "google-auth-library"]
   node_bundler = "esbuild"
   
 [[redirects]]
