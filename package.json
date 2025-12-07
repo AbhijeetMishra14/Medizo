@@ -14,6 +14,7 @@
     "dev": "vite",
     "dev:backend": "cd backend && pnpm dev",
     "build": "vite build",
+    "build:client": "vite build",
     "build:backend": "cd backend && pnpm build",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
