@@ -1,0 +1,105 @@
+✅ BACKEND/FRONTEND SEPARATION COMPLETE
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## What was changed:
+
+📝 Files Created:
+  • server/dev-server.ts          - Standalone backend development server
+  • .env.local.example            - Template for frontend API URL config
+  • SEPARATE_BACKEND_FRONTEND.md  - Detailed documentation
+  • QUICKSTART.md                 - Quick reference guide
+
+📝 Files Modified:
+  • package.json                  - Added new scripts (dev:backend, dev:frontend)
+  • vite.config.ts               - Added API proxy, removed Express plugin
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## NEW COMMANDS
+
+Terminal 1 - Backend API Server (port 3000):
+┌─────────────────────────────────────────────────┐
+│ pnpm dev:backend                                │
+│                                                 │
+│ Runs on: http://localhost:3000                 │
+│ API: /api/users, /api/products, /api/auth, etc │
+│ Env: Uses .env file                            │
+└─────────────────────────────────────────────────┘
+
+Terminal 2 - Frontend Dev Server (port 5173):
+┌─────────────────────────────────────────────────┐
+│ pnpm dev:frontend                               │
+│                                                 │
+│ Runs on: http://localhost:5173                 │
+│ Proxies /api/* → http://localhost:3000         │
+│ Hot reload enabled                             │
+│ Env: Uses .env.local                           │
+└─────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## DEPLOYMENT TO RENDER
+
+For backend deployment:
+
+Build: pnpm build:server
+Start: node dist/server/node-build.mjs
+
+Environment Variables on Render:
+  MONGODB_URI=mongodb+srv://...
+  ADMIN_EMAIL=your-email@...
+  ADMIN_PASSWORD=your-password
+  ADMIN_CODE=your-code
+  GOOGLE_CLIENT_ID=google-id
+  NODE_ENV=production
+  PORT=3000
+
+Render will expose: https://your-service.onrender.com
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## PRODUCTION BUILD (Still Combined)
+
+pnpm build
+  → builds client to dist/spa/
+  → builds server to dist/server/
+
+pnpm start
+  → runs full stack from single port
+  → serves both API and frontend
+  → best for deployment with single Render service
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## API URL CONFIGURATION
+
+Local Development:
+  Frontend (.env.local): VITE_API_URL=http://localhost:3000
+
+Production (Render backend + Vercel frontend):
+  Frontend (.env): VITE_API_URL=https://my-backend.onrender.com
+
+Production (Single service):
+  Works automatically with relative /api/* calls
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## NEXT STEPS
+
+1. Create .env.local:
+   cp .env.local.example .env.local
+
+2. Test locally:
+   Terminal 1: pnpm dev:backend
+   Terminal 2: pnpm dev:frontend
+   → Visit http://localhost:5173
+
+3. When ready to deploy:
+   • Backend → Render (uses dist/server/)
+   • Frontend → Vercel/Netlify (uses dist/spa/)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📚 See QUICKSTART.md for a quick reference
+📚 See SEPARATE_BACKEND_FRONTEND.md for detailed docs

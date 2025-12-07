@@ -1,0 +1,33 @@
+{
+  "name": "medizo-backend",
+  "version": "1.0.0",
+  "description": "Medizo Medical Store Backend API",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch server/dev-server.ts",
+    "build": "vite build --config vite.config.server.ts",
+    "start": "node dist/node-build.mjs",
+    "seed": "node scripts/seed-user.mjs",
+    "test": "vitest --run",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "google-auth-library": "^10.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.19.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.2.1",
+    "typescript": "^5.9.2",
+    "tsx": "^4.20.3",
+    "vite": "^7.1.9",
+    "vitest": "^3.2.4"
+  },
+  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
+}
