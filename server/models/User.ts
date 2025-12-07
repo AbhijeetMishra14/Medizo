@@ -6,6 +6,7 @@ const UserSchema = new Schema(
     email: { type: String, required: true, unique: true, index: true },
     passwordHash: { type: String }, // Optional for OAuth users (Google, Facebook)
     phone: { type: String },
+    image: { type: String }, // User profile image URL
     role: { type: String, enum: ["user", "admin"], default: "user" },
   },
   { timestamps: true },

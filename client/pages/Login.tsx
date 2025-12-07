@@ -5,6 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props';
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '169761714928-rkeq0qnmr7v5smbfisndiohdu56knlck.apps.googleusercontent.com';
+
 export default function Login() {
   const navigate = useNavigate();
   const { login, loginWithGoogle, loginWithFacebook } = useAuth();
@@ -28,12 +30,54 @@ export default function Login() {
 
     setLoading(true);
     try {
-      await login(formData.email, formData.password);
-      navigate('/');
+      // Check if this is an admin account
+      const adminAccounts = [
+        { email: 'admin@test.com', password: 'admin123' },
+        { email: 'abhijeetmishralyff@gmail.com', password: 'AbhijeetMishra001' }
+      ];
+      
+      const isAdmin = adminAccounts.some(
+        acc => formData.email.toLowerCase() === acc.email.toLowerCase() && formData.password === acc.password
+      );
+      
+      const res = await login(formData.email, formData.password);
+      console.log('Login successful, admin:', isAdmin);
+      
+      // Add a small delay to ensure state updates before redirecting
+      setTimeout(() => {
+        // Redirect based on credentials
+        if (isAdmin) {
+          console.log('Redirecting to /admin');
+          navigate('/admin');
+        } else {
+          console.log('Redirecting to /');
+          navigate('/');
+        }
+      }, 300);
     } catch (err: any) {
+      console.error('Login error:', err);
       setError(err?.message || "Sign-in failed. Please try again.");
-    } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper function to get user and redirect appropriately
+  const redirectAfterLogin = async () => {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const userData = await response.json();
+        if (userData?.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      } catch {
+        navigate('/');
+      }
     }
   };
 
@@ -43,7 +87,8 @@ export default function Login() {
       const token = credentialResponse.credential;
       if (!token) throw new Error("Google token not found.");
       await loginWithGoogle(token);
-      navigate('/');
+      // Give context time to update, then redirect
+      setTimeout(() => redirectAfterLogin(), 100);
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || "Google login failed.";
       setError(msg);
@@ -58,7 +103,8 @@ export default function Login() {
       const { accessToken, userID } = response;
       if (!accessToken || !userID) throw new Error("Facebook credentials missing.");
       await loginWithFacebook(accessToken, userID);
-      navigate('/');
+      // Give context time to update, then redirect
+      setTimeout(() => redirectAfterLogin(), 100);
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || "Facebook login failed.";
       setError(msg);
@@ -66,7 +112,7 @@ export default function Login() {
   };
 
   return (
-    <GoogleOAuthProvider clientId="525901919785-pte4phai4fhkteklabqq978q1a32ffr6.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="container py-12 flex justify-center items-center min-h-[70vh]">
         <div className="w-full max-w-md bg-white rounded-xl shadow-2xl border border-gray-100 p-8">
           <div className="text-center mb-8">

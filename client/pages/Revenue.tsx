@@ -77,7 +77,7 @@ export default function Revenue() {
   const [loading, setLoading] = useState(true);
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
 
-  const token = localStorage.getItem("ADMIN_TOKEN");
+  const token = localStorage.getItem("auth_token");
 
   const fetchData = async () => {
     if (!token) return setLoading(false);

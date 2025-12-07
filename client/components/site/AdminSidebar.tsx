@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import {
   UsersIcon,
   CubeIcon,
@@ -8,9 +9,12 @@ import {
   CurrencyDollarIcon,
   ChartBarIcon,
   ArrowLeftOnRectangleIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 
 const links = [
+  { name: "Dashboard", path: "/admin", icon: <ChartBarIcon className="h-5 w-5" /> },
+  { name: "Admin Management", path: "/admin/admins", icon: <ShieldCheckIcon className="h-5 w-5" /> },
   { name: "Users", path: "/admin/users", icon: <UsersIcon className="h-5 w-5" /> },
   { name: "Products", path: "/admin/products", icon: <CubeIcon className="h-5 w-5" /> },
   { name: "Reviews", path: "/admin/reviews", icon: <StarIcon className="h-5 w-5" /> },
@@ -22,18 +26,29 @@ const links = [
 export default function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+
+  const getGreeting = () => {
+    if (user?.email === "abhijeetmishralyff@gmail.com") {
+      return "Hi CTO/CFO Abhijeet Mishra";
+    }
+    return `Hi ${user?.name || "Admin"}`;
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem("ADMIN_TOKEN");
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user");
     localStorage.removeItem("adminData");
-    navigate("/");
+    navigate("/login");
   };
 
   return (
     <aside className="w-64 bg-gray-50 border-r border-gray-200 p-4 flex flex-col justify-between min-h-screen">
-      {/* Logo */}
+      {/* Logo and Greeting */}
       <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-indigo-600">Admin Panel</h2>
+        <h2 className="text-2xl font-bold text-indigo-600 mb-3">Admin Panel</h2>
+        <p className="text-sm font-medium text-gray-700">{getGreeting()}</p>
+        <p className="text-xs text-gray-500 mt-1">{user?.email}</p>
       </div>
 
       {/* Navigation Links */}

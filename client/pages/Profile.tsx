@@ -94,9 +94,57 @@ export default function Profile() {
     }
   };
 
-  const saveProfile = () => {
-    console.log("Name:", newName, "Email:", newEmail, "Phone:", newPhone, "Avatar:", newAvatar);
-    setShowEditModal(false);
+  const saveProfile = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        alert("Not authenticated");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("name", newName);
+      formData.append("phone", newPhone);
+      // Email is NOT sent since it cannot be changed
+      
+      // Handle file upload
+      if (newAvatar) {
+        formData.append("avatar", newAvatar);
+      }
+
+      const res = await fetch("/api/profile/update", {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        alert(errData.message || "Failed to update profile");
+        return;
+      }
+
+      const updatedData = await res.json();
+      
+      // Update localStorage with new user data
+      const updatedUser = {
+        ...contextUser,
+        name: updatedData.user.name,
+        phone: updatedData.user.phone,
+        image: updatedData.user.image,
+      };
+      localStorage.setItem("auth_user", JSON.stringify(updatedUser));
+
+      setShowEditModal(false);
+      alert("Profile updated successfully!");
+      window.location.reload();
+    } catch (err: any) {
+      console.error("Update error:", err);
+      alert(err.message || "Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -198,7 +246,9 @@ export default function Profile() {
         <div className="lg:col-span-3">
           <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 sticky top-4">
             <div className="flex items-center space-x-4 pb-4 border-b border-gray-100">
-              {user.avatarUrl ? (
+              {user.image ? (
+                <img src={user.image} alt="Avatar" className="h-16 w-16 rounded-full object-cover border-2 border-indigo-200" />
+              ) : user.avatarUrl ? (
                 <img src={user.avatarUrl} alt="Avatar" className="h-16 w-16 rounded-full object-cover border-2 border-indigo-200" />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-indigo-500 text-white flex items-center justify-center text-2xl font-bold">
@@ -280,7 +330,8 @@ export default function Profile() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="mt-1 block w-full border rounded-lg p-2 border-gray-300" />
+                <input type="email" value={newEmail} disabled className="mt-1 block w-full border rounded-lg p-2 border-gray-300 bg-gray-100 text-gray-600 cursor-not-allowed" />
+                <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Phone</label>

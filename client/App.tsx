@@ -23,7 +23,7 @@ import Help from "./pages/Help";
 import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import About from "./pages/About";
-import RequireAdmin from "@/components/site/requireAdmin";
+import AdminGuard from "@/components/site/AdminGuard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminOrders from "./pages/AdminOrders";
 import Revenue from "./pages/Revenue";
@@ -37,6 +37,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import AdminReviews from "@/pages/AdminReviews";
 import TermsOfService from "@/pages/TermsOfServices";
 import TermsOfServices from "@/pages/TermsOfServices";
+import AdminManagement from "@/pages/AdminManagement";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -45,7 +46,7 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <CartProvider>
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
               <Route element={<Layout />}>
                 <Route path="/" element={<Index />} />
@@ -58,13 +59,14 @@ const App = () => (
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/orders" element={<Orders />} />
-                <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-                <Route path="/admin/users" element={<RequireAdmin><Users /></RequireAdmin>} />
-                <Route path="/admin/products" element={<RequireAdmin><ProductManagement /></RequireAdmin>} />
-                <Route path="/admin/reviews" element={<RequireAdmin><AdminReviews /></RequireAdmin>} />
-                <Route path="/admin/analytics" element={<RequireAdmin><Analytics /></RequireAdmin>} />
-                <Route path="/admin/revenue" element={<RequireAdmin><Revenue /></RequireAdmin>} />
-                <Route path="/admin/orders" element={<RequireAdmin><AdminOrders /></RequireAdmin>} />
+                <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+                <Route path="/admin/admins" element={<AdminGuard><AdminManagement /></AdminGuard>} />
+                <Route path="/admin/users" element={<AdminGuard><Users /></AdminGuard>} />
+                <Route path="/admin/products" element={<AdminGuard><ProductManagement /></AdminGuard>} />
+                <Route path="/admin/reviews" element={<AdminGuard><AdminReviews /></AdminGuard>} />
+                <Route path="/admin/analytics" element={<AdminGuard><Analytics /></AdminGuard>} />
+                <Route path="/admin/revenue" element={<AdminGuard><Revenue /></AdminGuard>} />
+                <Route path="/admin/orders" element={<AdminGuard><AdminOrders /></AdminGuard>} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/privacy" element={<Privacy />} />

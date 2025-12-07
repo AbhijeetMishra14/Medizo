@@ -14,8 +14,14 @@ import { authRouter } from "./routes/auth";
 import { seedRouter } from "./routes/seed";
 import { reviewsRouter } from "./routes/reviews";
 import ordersRouter from "./routes/orders";
+import router as profileRouter from "./routes/profile";
 
 import { ensureSeed } from "./services/productService";
+import { isMongoConnected } from "./config/db";
+
+// Track MongoDB initialization
+let mongoInitialized = false;
+let mongoInitPromise = Promise.resolve();
 
 export function createServer() {
   const app = express();
@@ -27,6 +33,10 @@ export function createServer() {
   }));
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+  
+  // Serve static files for uploads
+  app.use("/uploads", express.static("public/uploads"));
+
 
   // Set security headers for OAuth
   app.use((req, res, next) => {
@@ -47,20 +57,23 @@ export function createServer() {
   app.use("/api/admin", adminAuthRouter);            // Admin login, verify, me
   app.use("/api/admin/products", productsRouter);    // Admin products CRUD
   app.use("/api/auth", authRouter);                  // User auth
+  app.use("/api/profile", profileRouter);            // User profile
   app.use("/api/reviews", reviewsRouter);            // Reviews
   app.use("/api/orders", ordersRouter);              // Orders
   app.use("/api/seed", seedRouter);                  // Seed data
 
   // Initialize DB connection and seed if needed
-  connectMongo()
+  mongoInitPromise = connectMongo()
     .then(async () => {
-      console.log("MongoDB connected.");
+      console.log("✅ MongoDB connected.");
       await ensureSeed();
+      mongoInitialized = true;
     })
-    .catch((err) => {
-      console.warn("MongoDB connection error, using in-memory fallback:", err instanceof Error ? err.message : err);
+    .catch(async (err) => {
+      console.warn("⚠️  MongoDB connection error, using in-memory fallback:", err instanceof Error ? err.message : err);
       // Still run seed for in-memory data
-      ensureSeed();
+      await ensureSeed();
+      mongoInitialized = true;
     });
 
   return app;

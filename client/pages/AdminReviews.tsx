@@ -21,7 +21,7 @@ export default function AdminReviews() {
   const [filterRating, setFilterRating] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const token = localStorage.getItem("ADMIN_TOKEN");
+  const token = localStorage.getItem("auth_token");
 
   // Fetch all reviews
   const fetchReviews = async () => {

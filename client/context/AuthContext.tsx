@@ -66,38 +66,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!email || !password) throw new Error("Please provide email and password.");
     const res = await apiPost<{ token: string; user: AuthUser }>("/api/auth/login", { email, password });
     setToken(res.token);
-    localStorage.setItem("auth_token", res.token);
     setUser(res.user);
+    localStorage.setItem("auth_token", res.token);
+    localStorage.setItem("auth_user", JSON.stringify(res.user));
   };
 
   const signup = async (name: string, email: string, password: string, phone?: string) => {
     if (!name || !email || !password) throw new Error("Please provide name, email and password.");
     const res = await apiPost<{ token: string; user: AuthUser }>("/api/auth/signup", { name, email, password, phone });
     setToken(res.token);
-    localStorage.setItem("auth_token", res.token);
     setUser(res.user);
+    localStorage.setItem("auth_token", res.token);
+    localStorage.setItem("auth_user", JSON.stringify(res.user));
   };
 
   const loginWithGoogle = async (googleToken: string) => {
     if (!googleToken) throw new Error("Missing Google token.");
     const { data } = await axios.post<{ token: string; user: AuthUser }>("/api/auth/google", { token: googleToken });
     setToken(data.token);
-    localStorage.setItem("auth_token", data.token);
     setUser(data.user);
+    localStorage.setItem("auth_token", data.token);
+    localStorage.setItem("auth_user", JSON.stringify(data.user));
   };
 
   const loginWithFacebook = async (accessToken: string, userID: string) => {
     if (!accessToken || !userID) throw new Error("Missing Facebook credentials.");
     const { data } = await axios.post<{ token: string; user: AuthUser }>("/api/auth/facebook", { accessToken, userID });
     setToken(data.token);
-    localStorage.setItem("auth_token", data.token);
     setUser(data.user);
+    localStorage.setItem("auth_token", data.token);
+    localStorage.setItem("auth_user", JSON.stringify(data.user));
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
     localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user");
   };
 
   const refresh = async () => {

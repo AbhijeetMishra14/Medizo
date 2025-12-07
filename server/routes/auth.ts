@@ -13,6 +13,15 @@ export const authRouter = Router();
 // ----------------- HELPERS -----------------
 const isMongo = () => mongoose.connection?.readyState === 1;
 
+// Wait for MongoDB to be ready with retry logic
+async function waitForMongo(maxRetries = 10): Promise<boolean> {
+  for (let i = 0; i < maxRetries; i++) {
+    if (isMongo()) return true;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  return isMongo();
+}
+
 async function hashPassword(password: string): Promise<string> {
   const salt = crypto.randomBytes(16).toString("hex");
   const buf = (await scrypt(password, salt, 64)) as Buffer;
@@ -95,18 +104,25 @@ authRouter.post("/facebook", async (req, res) => {
 // ----------------- SIGNUP -----------------
 authRouter.post("/signup", async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, role } = req.body;
     if (!name || !email || !password) return res.status(400).json({ message: "Please fill all required fields." });
 
     const normalizedEmail = email.toLowerCase();
     const passwordHash = await hashPassword(password);
+    const userRole = role === "admin" ? "admin" : "user"; // Default to "user" if not specified
+
+    // Wait for MongoDB to be ready
+    const isReady = await waitForMongo();
+    if (!isReady) {
+      return res.status(503).json({ message: "Database not connected. Please try again later." });
+    }
 
     if (isMongo()) {
       const existingUser = await UserModel.findOne({ email: normalizedEmail }).lean();
       if (existingUser) return res.status(409).json({ message: "Email already registered" });
 
-      const newUser = await UserModel.create({ name, email: normalizedEmail, passwordHash, phone, role: "user" });
-      const token = signUserToken(String(newUser._id));
+      const newUser = await UserModel.create({ name, email: normalizedEmail, passwordHash, phone, role: userRole });
+      const token = signUserToken(String(newUser._id), userRole);
 
       return res.status(201).json({
         token,
@@ -135,9 +151,20 @@ authRouter.post("/login", async (req, res) => {
 
     const normalizedEmail = email.toLowerCase();
 
-    if (isMongo()) {
+    // Wait for MongoDB to be ready
+    const isReady = await waitForMongo();
+    if (!isReady) {
+      return res.status(503).json({ message: "Database not connected. Please try again later." });
+    }
+
+    try {
       const user = await UserModel.findOne({ email: normalizedEmail }).lean();
       if (!user) return res.status(401).json({ message: "Invalid credentials." });
+
+      // Check if user has a password (not an OAuth-only user)
+      if (!user.passwordHash) {
+        return res.status(401).json({ message: "Invalid credentials. This account uses OAuth login only." });
+      }
 
       // Check if it's an admin trying to log in through the mobile app
       const isAdminApp = req.get('User-Agent')?.includes('medizo_app');
@@ -150,7 +177,8 @@ authRouter.post("/login", async (req, res) => {
       const isValid = await verifyPassword(user.passwordHash, password);
       if (!isValid) return res.status(401).json({ message: "Invalid credentials." });
 
-      const token = signUserToken(String(user._id));
+      // Sign token with the user's actual role
+      const token = signUserToken(String(user._id), user.role || "user");
       return res.json({
         token,
         user: {
@@ -161,8 +189,9 @@ authRouter.post("/login", async (req, res) => {
           role: user.role,
         },
       });
-    } else {
-      return res.status(503).json({ message: "Database not connected" });
+    } catch (dbErr: any) {
+      console.error("Database error during login:", dbErr);
+      return res.status(503).json({ message: "Database error. Please try again later." });
     }
   } catch (err: any) {
     console.error("Login Error:", err);
@@ -175,6 +204,12 @@ authRouter.get("/me", requireUser, async (req, res) => {
   try {
     const userId = (req as any).user.sub;
     if (!userId) return res.status(400).json({ message: "Invalid token." });
+
+    // Wait for MongoDB to be ready
+    const isReady = await waitForMongo();
+    if (!isReady) {
+      return res.status(503).json({ message: "Database not connected. Please try again later." });
+    }
 
     if (isMongo()) {
       const user = await UserModel.findById(userId).lean();

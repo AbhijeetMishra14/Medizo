@@ -21,7 +21,7 @@ export default function Users() {
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState<Message | null>(null);
 
-  const token = localStorage.getItem("ADMIN_TOKEN");
+  const token = localStorage.getItem("auth_token");
 
   // Fetch users
   const fetchUsers = async () => {
@@ -71,11 +71,13 @@ export default function Users() {
     fetchUsers();
   }, []);
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = users
+    .filter((u) => u.role !== "admin")
+    .filter(
+      (u) =>
+        u.name.toLowerCase().includes(search.toLowerCase()) ||
+        u.email.toLowerCase().includes(search.toLowerCase())
+    );
 
   return (
     <div className="container mx-auto py-10 px-4">

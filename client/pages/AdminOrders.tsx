@@ -55,7 +55,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
     <span
       className={`inline-flex items-center px-3 py-1 text-xs font-semibold uppercase leading-none rounded-full text-white ${colorClass}`}
     >
-      {status.replaceAll("_", " ")}
+      {status.replace(/_/g, " ")}
     </span>
   );
 };
@@ -123,7 +123,7 @@ const OrderTable: React.FC<OrderTableProps> = ({ title, data, columns }) => (
 
 // --- MAIN COMPONENT: AdminOrders ---
 export default function AdminOrders() {
-  const token = localStorage.getItem("ADMIN_TOKEN");
+  const token = localStorage.getItem("auth_token");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelReasonId, setCancelReasonId] = useState<string | null>(null);
@@ -233,7 +233,7 @@ export default function AdminOrders() {
           <option value={order.status} disabled>Change Status</option>
           {nextActions.map((s) => (
             <option key={s} value={s}>
-              {s.replaceAll("_", " ").toUpperCase()}
+              {s.replace(/_/g, " ").toUpperCase()}
             </option>
           ))}
         </select>

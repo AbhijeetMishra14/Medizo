@@ -35,7 +35,7 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => (
-  <div className="p-5 bg-white shadow-lg rounded-xl flex items-center justify-between transition duration-300 hover:ring-2 hover:ring-offset-2" style={{ borderColor: color.split('-')[1], ringColor: color }}>
+  <div className="p-5 bg-white shadow-lg rounded-xl flex items-center justify-between transition duration-300 hover:ring-2 hover:ring-offset-2 hover:ring-blue-200">
     <div>
       <h3 className="text-sm font-medium text-gray-500">{title}</h3>
       {/* Updated to display '₹' symbol directly */}
@@ -62,7 +62,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const fetchMetrics = async () => {
-      const token = localStorage.getItem("ADMIN_TOKEN");
+      // Use auth_token instead of ADMIN_TOKEN
+      const token = localStorage.getItem("auth_token");
       if (!token) return setIsLoading(false);
 
       try {
@@ -70,43 +71,50 @@ export default function AdminDashboard() {
         const ordersRes = await fetch("/api/orders/admin/list", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const ordersDataJson = await ordersRes.json();
-        const orders = ordersDataJson.orders || [];
+        if (!ordersRes.ok) {
+          console.error("Failed to fetch orders:", ordersRes.status, await ordersRes.text());
+          setOrdersData([]);
+        } else {
+          const ordersDataJson = await ordersRes.json();
+          const orders = ordersDataJson.orders || [];
+          console.log("Orders fetched:", orders.length, orders);
 
-        let totalRev = 0;
-        const revByDate: Record<string, number> = {};
-        const ordersByDate: Record<string, number> = {};
+          let totalRev = 0;
+          const revByDate: Record<string, number> = {};
+          const ordersByDate: Record<string, number> = {};
 
-        orders.forEach((order: any) => {
-          const dateStr = new Date(order.createdAt).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
+          orders.forEach((order: any) => {
+            const dateStr = new Date(order.createdAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            });
+
+            ordersByDate[dateStr] = (ordersByDate[dateStr] || 0) + 1;
+
+            if (order.status === "delivered") {
+              totalRev += order.total || 0;
+              revByDate[dateStr] = (revByDate[dateStr] || 0) + (order.total || 0);
+            }
           });
 
-          ordersByDate[dateStr] = (ordersByDate[dateStr] || 0) + 1;
-
-          if (order.status === "delivered") {
-            totalRev += order.total || 0;
-            revByDate[dateStr] = (revByDate[dateStr] || 0) + (order.total || 0);
+          const last7Days = [];
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+            last7Days.push({
+              date: dateStr,
+              revenue: revByDate[dateStr] || 0,
+              orders: ordersByDate[dateStr] || 0,
+            });
           }
-        });
 
-        const last7Days = [];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          last7Days.push({
-            date: dateStr,
-            revenue: revByDate[dateStr] || 0,
-            orders: ordersByDate[dateStr] || 0,
-          });
+          console.log("Revenue data:", last7Days);
+          setRevenueData(last7Days);
+          setOrdersData(last7Days);
+          setTotalOrders(orders.length);
+          setTotalRevenue(totalRev);
         }
-
-        setRevenueData(last7Days);
-        setOrdersData(last7Days);
-        setTotalOrders(orders.length);
-        setTotalRevenue(totalRev);
 
         // --- Fetch Users ---
         const usersRes = await fetch("/api/admin/users", {

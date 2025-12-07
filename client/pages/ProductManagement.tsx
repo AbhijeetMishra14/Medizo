@@ -42,7 +42,7 @@ export default function AdminProducts() {
   const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 
-  const token = localStorage.getItem("ADMIN_TOKEN");
+  const token = localStorage.getItem("auth_token");
   const searchRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
 

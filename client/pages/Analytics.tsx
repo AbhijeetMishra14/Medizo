@@ -25,7 +25,7 @@ export default function Analytics() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const token = localStorage.getItem("ADMIN_TOKEN");
+  const token = localStorage.getItem("auth_token");
 
   useEffect(() => {
     const fetchJSON = async (url: string) => {
@@ -48,20 +48,17 @@ export default function Analytics() {
       try {
         setLoading(true);
 
-        // Replace with correct backend URL if needed
-        const baseUrl = "http://localhost:5000";
-
         const [productsData, ordersData] = await Promise.all([
-          fetchJSON(`${baseUrl}/api/admin/products`),
-          fetchJSON(`${baseUrl}/api/admin/orders`),
+          fetchJSON(`/api/products`),
+          fetchJSON(`/api/orders/admin/list`),
         ]);
 
-        const totalProducts = productsData.total ?? productsData.items?.length ?? 0;
-        const totalOrders = ordersData.total ?? ordersData.items?.length ?? 0;
+        const totalProducts = productsData.items?.length ?? 0;
+        const totalOrders = ordersData.orders?.length ?? 0;
 
         const totalRevenue =
-          ordersData.items?.reduce(
-            (sum: number, order: any) => (order.status === "completed" ? sum + order.total : sum),
+          ordersData.orders?.reduce(
+            (sum: number, order: any) => (order.status === "delivered" ? sum + order.total : sum),
             0
           ) ?? 0;
 
@@ -72,7 +69,7 @@ export default function Analytics() {
         });
 
         const ordersByMonth: Record<string, number> = {};
-        (ordersData.items ?? []).forEach((order: any) => {
+        (ordersData.orders ?? []).forEach((order: any) => {
           const month = new Date(order.createdAt).toLocaleString("default", { month: "short", year: "numeric" });
           ordersByMonth[month] = (ordersByMonth[month] ?? 0) + 1;
         });

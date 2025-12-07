@@ -44,8 +44,15 @@ function expressPlugin(): Plugin {
     configureServer(server) {
       const app = createServer();
 
-      // Mount Express app as middleware
-      server.middlewares.use(app);
+      // Add middleware directly - must be done in configureServer hook
+      server.middlewares.use((req, res, next) => {
+        // Handle API routes with Express
+        if (req.url.startsWith("/api/") || req.url.startsWith("/health")) {
+          app(req, res);
+        } else {
+          next();
+        }
+      });
     },
   };
 }
