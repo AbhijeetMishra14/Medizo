@@ -33,7 +33,7 @@ const parseFormData = express.text({ type: 'application/octet-stream' });
 let mongoInitialized = false;
 let mongoInitPromise = Promise.resolve();
 
-export function createServer() {
+export function createServer(): express.Application {
   const app = express();
 
   // CORS configuration for production
