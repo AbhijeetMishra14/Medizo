@@ -1,6 +1,13 @@
 // server.ts
+import { fileURLToPath } from 'url';
 import path from "path";
 import dotenv from "dotenv";
+
+// ESM-compatible __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables
 dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 
 import express from "express";
