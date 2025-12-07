@@ -14,10 +14,13 @@ import { authRouter } from "./routes/auth";
 import { seedRouter } from "./routes/seed";
 import { reviewsRouter } from "./routes/reviews";
 import ordersRouter from "./routes/orders";
-import router as profileRouter from "./routes/profile";
+import profileRouter from "./routes/profile";
 
 import { ensureSeed } from "./services/productService";
 import { isMongoConnected } from "./config/db";
+
+// Custom middleware to parse FormData
+const parseFormData = express.text({ type: 'application/octet-stream' });
 
 // Track MongoDB initialization
 let mongoInitialized = false;
@@ -33,6 +36,61 @@ export function createServer() {
   }));
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+  
+  // Custom middleware to parse FormData from profile updates
+  app.use((req, res, next) => {
+    if (req.is('multipart/form-data') || (req.headers['content-type'] && req.headers['content-type'].includes('multipart'))) {
+      // Parse multipart form data manually
+      const boundary = req.headers['content-type']?.split('boundary=')[1];
+      if (!boundary) return next();
+      
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk.toString();
+      });
+      
+      req.on('end', () => {
+        try {
+          // Simple parsing of multipart form data
+          const parts = body.split(`--${boundary}`);
+          req.body = {};
+          
+          parts.forEach((part) => {
+            if (!part || part === '--') return;
+            
+            const [header, ...content] = part.split('\r\n\r\n');
+            const contentStr = content.join('\r\n\r\n').replace(/\r\n--$/, '').trim();
+            
+            const nameMatch = header.match(/name="([^"]+)"/);
+            if (nameMatch) {
+              const fieldName = nameMatch[1];
+              const filenameMatch = header.match(/filename="([^"]+)"/);
+              
+              if (filenameMatch) {
+                // Handle file upload
+                (req as any).file = {
+                  fieldname: fieldName,
+                  originalname: filenameMatch[1],
+                  buffer: Buffer.from(contentStr, 'binary'),
+                  size: Buffer.byteLength(contentStr),
+                };
+              } else {
+                // Handle regular field
+                (req.body as any)[fieldName] = contentStr;
+              }
+            }
+          });
+          
+          next();
+        } catch (err) {
+          console.error('FormData parsing error:', err);
+          next();
+        }
+      });
+    } else {
+      next();
+    }
+  });
   
   // Serve static files for uploads
   app.use("/uploads", express.static("public/uploads"));

@@ -1,15 +1,14 @@
-import { defineConfig, Plugin } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { createServer } from "./server";
+import { createServer } from "./server"; // must exist!
 
-// https://vitejs.dev/config/
 export default defineConfig({
   root: path.resolve(__dirname, "client"),
 
   server: {
-    host: "0.0.0.0", // Make server accessible on LAN
-    port: 5173,      // Optional: change if needed
+    host: "0.0.0.0",
+    port: 5173,
     fs: {
       allow: [
         path.resolve(__dirname, "client"),
@@ -17,7 +16,6 @@ export default defineConfig({
       ],
     },
     headers: {
-      // Fix COOP / COEP for Google OAuth popup in dev
       "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
       "Cross-Origin-Embedder-Policy": "unsafe-none",
     },
@@ -44,9 +42,7 @@ function expressPlugin(): Plugin {
     configureServer(server) {
       const app = createServer();
 
-      // Add middleware directly - must be done in configureServer hook
       server.middlewares.use((req, res, next) => {
-        // Handle API routes with Express
         if (req.url.startsWith("/api/") || req.url.startsWith("/health")) {
           app(req, res);
         } else {

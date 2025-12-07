@@ -94,6 +94,15 @@ export default function Profile() {
     }
   };
 
+  const openEditModal = () => {
+    // Update state with current user data when opening modal
+    setNewName(user.name);
+    setNewEmail(user.email);
+    setNewPhone(user.phone);
+    setNewAvatar(null);
+    setShowEditModal(true);
+  };
+
   const saveProfile = async () => {
     setLoading(true);
     try {
@@ -103,20 +112,19 @@ export default function Profile() {
         return;
       }
 
-      const formData = new FormData();
-      formData.append("name", newName);
-      formData.append("phone", newPhone);
-      // Email is NOT sent since it cannot be changed
-      
-      // Handle file upload
-      if (newAvatar) {
-        formData.append("avatar", newAvatar);
-      }
+      // Send as JSON instead of FormData for better compatibility
+      const body: any = {
+        name: newName,
+        phone: newPhone,
+      };
 
       const res = await fetch("/api/profile/update", {
         method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -197,7 +205,7 @@ export default function Profile() {
             <div className="pt-6 border-t border-gray-100">
               <h4 className="text-xl font-semibold text-gray-800 mb-4">Account Settings</h4>
               <button
-                onClick={() => setShowEditModal(true)}
+                onClick={openEditModal}
                 className={`w-full md:w-auto inline-flex items-center justify-center rounded-lg border border-gray-300 px-6 py-3 text-sm font-medium transition ${BG_PRIMARY_CLASS} text-white shadow-md`}
               >
                 <Edit size={16} className="mr-2" /> Edit Profile Details

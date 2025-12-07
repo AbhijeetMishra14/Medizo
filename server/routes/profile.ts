@@ -119,8 +119,13 @@ router.put("/", requireUser as RequestHandler, async (req, res) => {
 // Update endpoint that accepts multipart form data
 router.put("/update", requireUser as RequestHandler, async (req, res) => {
   try {
-    const userId = (req as any).userId;
-    const { name, phone, email } = req.body;
+    const authUser = (req as any).user;
+    const userId = authUser?.sub;
+    
+    // Handle both JSON and FormData
+    const name = req.body?.name as string;
+    const phone = req.body?.phone as string;
+    const email = req.body?.email as string;
 
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -150,23 +155,23 @@ router.put("/update", requireUser as RequestHandler, async (req, res) => {
       }
     }
 
-    const user = await UserModel.findByIdAndUpdate(userId, updateData, {
+    const updatedUser = await UserModel.findByIdAndUpdate(userId, updateData, {
       new: true,
     }).select("-passwordHash").lean();
 
-    if (!user) {
+    if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
     res.json({
       message: "Profile updated successfully",
       user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        image: user.image,
-        role: user.role,
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        image: updatedUser.image,
+        role: updatedUser.role,
       },
     });
   } catch (err: any) {
@@ -176,9 +181,11 @@ router.put("/update", requireUser as RequestHandler, async (req, res) => {
 });
 
 // Add new address
-router.post("/address", authMiddleware, async (req, res) => {
+router.post("/address", requireUser as RequestHandler, async (req, res) => {
   const { label, line1, line2, city, state, zip, country } = req.body;
-  const user = await UserModel.findById(req.userId);
+  const authUser = (req as any).user;
+  const userId = authUser?.sub;
+  const user = await UserModel.findById(userId);
   if (!user) return res.status(404).json({ message: "User not found" });
 
   user.addresses.push({ label, line1, line2, city, state, zip, country });
@@ -187,11 +194,13 @@ router.post("/address", authMiddleware, async (req, res) => {
 });
 
 // Update an existing address
-router.put("/address/:index", authMiddleware, async (req, res) => {
+router.put("/address/:index", requireUser as RequestHandler, async (req, res) => {
   const index = Number(req.params.index);
   const { label, line1, line2, city, state, zip, country } = req.body;
 
-  const user = await UserModel.findById(req.userId);
+  const authUser = (req as any).user;
+  const userId = authUser?.sub;
+  const user = await UserModel.findById(userId);
   if (!user) return res.status(404).json({ message: "User not found" });
   if (!user.addresses[index]) return res.status(400).json({ message: "Address not found" });
 
