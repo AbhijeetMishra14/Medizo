@@ -6,11 +6,7 @@
 // Get backend URL from environment or use default
 const getBackendUrl = (): string => {
   // In production (Netlify), use Render backend URL
-  if (import.meta.env.PROD) {
-    return import.meta.env.VITE_API_URL || "https://medizo-z364.onrender.com";
-  }
-  // In development, use localhost
-  return "http://localhost:3000";
+  return "https://medizo-z364.onrender.com";
 };
 
 export const API_BASE_URL = getBackendUrl();

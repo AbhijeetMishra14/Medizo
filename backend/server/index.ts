@@ -44,6 +44,7 @@ export function createServer(): express.Application {
       "http://localhost:3000",      // Local API
       "http://192.168.18.14:5173",  // Local network
       "http://192.168.18.14:5174",  // Local network (alternate)
+      "https://medizo-z364.onrender.com",
       process.env.FRONTEND_URL,     // Netlify/production frontend
     ].filter(Boolean);
     return origins;

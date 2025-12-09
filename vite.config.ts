@@ -13,6 +13,7 @@ export default defineConfig({
         path.resolve(__dirname, "client"),
         path.resolve(__dirname, "shared"),
         path.resolve(__dirname, "public"),
+        path.resolve(__dirname, "node_modules"),
       ],
     },
     headers: {

@@ -13,7 +13,7 @@ export default function DefaultNav() {
   const hoverColorClass = "hover:text-indigo-700";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur shadow-md h-16">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur h-16">
       <div className="container flex items-center justify-between h-full px-4">
 
         {/* Left Side: Back Button or Home Button */}
